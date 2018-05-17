@@ -13,6 +13,8 @@ Rating counts: {rating_count}, Published date: {pub_date},
 See more: {info}
 """
 
+MAX_BOOKS_RESULT = 4
+
 # bookshelf is global variable to be shared between components
 bookshelf = set()
 
@@ -68,13 +70,22 @@ class Book:
         return self.raw_data['volumeInfo'].get('publishedDate', '')
 
 
-def search_book(str_to_search):
+def search_book(str_to_search, max_results=4, order_by='relevance',
+                start_index=0):
     """
     Searches book using string to search.
     :param str_to_search: string to search
+    :param max_results: max number of items in search results to display
+    :param order_by: sorting
+    :param start_index: index of first element to show in search result
     :return: list with founded books.
     """
-    payload = {'q': str_to_search}
+    payload = {
+        'q': str_to_search,
+        'maxResults': max_results,
+        'orderBy': order_by,
+        'startIndex': start_index,
+    }
     request = requests.get(URL_TO_SEARCH, params=payload)
     search_result = request.json().get('items')
     return search_result
@@ -115,13 +126,9 @@ def see_books_pretty(books_list):
                 book_id=book_id, title=title, authors=authors, descr=descr,
                 price=price, page_count=page_count, avg_rating=avg_rating,
                 rating_count=rating_count, pub_date=pub_date, info=info))
-        # formatted_books.append(
-        #     f'{nl}Id: {book_id}{nl}Title: {title},{nl}Authors: {authors},{nl}'
-        #     f'Description: {descr}{nl}Price: {price}, Page count: '
-        #     f'{page_count}, Avg rating: {avg_rating}, Rating counts: '
-        #     f'{rating_count}, Published date: {pub_date},{nl}'
-        #     f'See more: {info}{nl}')
-    return formatted_books
+    enumerated_books = enumerate(formatted_books, 1)
+    for n, v in enumerated_books:
+        print(n, v)
 
 
 def submenu_search():
@@ -129,16 +136,22 @@ def submenu_search():
     Submenu for search books and add it to virtual bookshelf.
     """
     search_str = input('Enter the string to search: ')
-    res = search_book(search_str)
-    enumerated_res = enumerate(see_books_pretty(res), 1)
-    for n, v in enumerated_res:
-        print(n, v)
+    start_from = 0
+    res = search_book(search_str, max_results=MAX_BOOKS_RESULT,
+                      start_index=start_from)
+    see_books_pretty(res)
     while res:
-        choice = input('Save book to shelve(enter book id) or'
+        choice = input('See next results (N): '
+                       '\nSave book to shelve(enter book id): '
                        '\nGo back to main menu (Q): ')
         if choice:
             if choice == 'Q':
                 return
+            elif choice == 'N':
+                start_from += MAX_BOOKS_RESULT
+                res = search_book(search_str, max_results=MAX_BOOKS_RESULT,
+                                  start_index=start_from)
+                see_books_pretty(res)
             else:
                 add_book_to_shelf(choice, res)
         else:
