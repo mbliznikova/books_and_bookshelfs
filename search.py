@@ -13,6 +13,7 @@ Rating counts: {rating_count}, Published date: {pub_date},
 See more: {info}
 """
 
+# The maximum number of items to display in search results.
 MAX_RESULT = 4
 
 # bookshelf is global variable to be shared between components
@@ -69,6 +70,24 @@ class Book:
     def published_date(self):
         return self.raw_data['volumeInfo'].get('publishedDate', '')
 
+    @property
+    def info_link(self):
+        return self.raw_data['volumeInfo'].get('infoLink', '')
+
+    def show_info(self):
+        """
+        Returns formatted info for book to print.
+        :return: formatted sting with book params values.
+        """
+        pretty_book = BOOK_TEMPLATE.format(
+            book_id=self.id, title=self.title, authors=self.authors,
+            descr=self.description, price=self.price,
+            page_count=self.page_count, avg_rating=self.average_rating,
+            rating_count=self.rating_count, pub_date=self.published_date,
+            info=self.info_link
+        )
+        return pretty_book
+
 
 def search_book(str_to_search, max_results=4, order_by='relevance',
                 start_index=0):
@@ -80,6 +99,8 @@ def search_book(str_to_search, max_results=4, order_by='relevance',
     :param start_index: index of first element to show in search result
     :return: list with founded books.
     """
+    founded_books = []
+    # Requests parameters
     payload = {
         'q': str_to_search,
         'maxResults': max_results,
@@ -88,7 +109,11 @@ def search_book(str_to_search, max_results=4, order_by='relevance',
     }
     request = requests.get(URL_TO_SEARCH, params=payload)
     search_result = request.json().get('items')
-    return search_result
+    # Make Book() objects from search results
+    for book in search_result:
+        founded_books.append(Book(book))
+    # The list of Book() objects will be returned
+    return founded_books
 
 
 def add_book_to_shelf(book_id, search_results):
@@ -99,35 +124,7 @@ def add_book_to_shelf(book_id, search_results):
     :param search_results:  search results.
     """
     book = search_results[book_id - 1]
-    bookshelf.add(Book(book))
-
-
-def see_books_pretty(books_list):
-    """
-    Formats the search results to be more humane-readable.
-    :param books_list: books search results.
-    :return: list with formatted book info.
-    """
-    formatted_books = []
-    for book in books_list:
-        book_id = book['id']
-        title = book['volumeInfo'].get('title', '')
-        authors = book['volumeInfo'].get('authors', [])
-        descr = book['volumeInfo'].get('description', '')
-        price = book['saleInfo'].get('listPrice', {}).get('amount', 0.00)
-        page_count = book['volumeInfo'].get('pageCount', 0)
-        avg_rating = book['volumeInfo'].get('averageRating', 0.0)
-        rating_count = book['volumeInfo'].get('ratingsCount', 0)
-        pub_date = book['volumeInfo'].get('publishedDate', '')
-        info = book['volumeInfo'].get('infoLink', '')
-        formatted_books.append(
-            BOOK_TEMPLATE.format(
-                book_id=book_id, title=title, authors=authors, descr=descr,
-                price=price, page_count=page_count, avg_rating=avg_rating,
-                rating_count=rating_count, pub_date=pub_date, info=info))
-    enumerated_books = enumerate(formatted_books, 1)
-    for n, v in enumerated_books:
-        print(n, v)
+    bookshelf.add(book)
 
 
 def submenu_search():
@@ -138,7 +135,8 @@ def submenu_search():
     start_from = 0
     res = search_book(search_str, max_results=MAX_RESULT,
                       start_index=start_from)
-    see_books_pretty(res)
+    for n, v in enumerate(res, 1):
+        print(n, v.show_info())
     while res:
         choice = input('See next page with results (N): '
                        '\nSee the previous page with results (P)'
@@ -151,7 +149,8 @@ def submenu_search():
                 start_from += MAX_RESULT
                 res = search_book(search_str, max_results=MAX_RESULT,
                                   start_index=start_from)
-                see_books_pretty(res)
+                for n, v in enumerate(res, 1):
+                    print(n, v.show_info())
             elif choice == 'P':
                 if start_from == 0:
                     print('You has reached the first page of search results')
@@ -159,13 +158,17 @@ def submenu_search():
                     start_from -= MAX_RESULT
                     res = search_book(search_str, max_results=MAX_RESULT,
                                       start_index=start_from)
-                    see_books_pretty(res)
+                    for n, v in enumerate(res, 1):
+                        print(n, v.show_info())
             else:
                 book_to_save = choice
                 try:
                     book_to_save = int(book_to_save)
                 except ValueError:
-                    print('Enter the number of listed book:')
+                    print('Please enter the number of listed book:')
+                    continue
+                if book_to_save > MAX_RESULT:
+                    print('Please enter the number of listed book:')
                     continue
                 add_book_to_shelf(book_to_save, res)
         else:

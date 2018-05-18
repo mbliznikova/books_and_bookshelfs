@@ -15,21 +15,13 @@ def sort_books(sort=None):
 
 def format_books(books_list):
     """
-    Formats the bookshelf.
+    Prints the formatted info for each book on bookshelf.
     :param books_list: bookshelf.
     """
     if not isinstance(books_list, list):
         books_list = list(books_list)
-    len_books = len(books_list)
-    for b in range(len_books):
-        books_list[b] = f'Id: {books_list[b].id} ' \
-                        f'Title: {books_list[b].title} ' \
-                        f'Price: {books_list[b].price} ' \
-                        f'Avg rating: {books_list[b].average_rating} ' \
-                        f'Rating count: {books_list[b].rating_count} ' \
-                        f'Pub date: {books_list[b].published_date} ' \
-                        f'Page count {books_list[b].page_count}'
-    print('\n'.join(books_list))
+    for book in books_list:
+        print(book.show_info())
 
 
 def return_to_main_menu():
