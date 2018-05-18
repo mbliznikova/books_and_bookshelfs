@@ -135,7 +135,7 @@ def submenu_search():
     start_from = 0
     res = search_book(search_str, max_results=MAX_RESULT,
                       start_index=start_from)
-    # List search results with appropriate numbers in list
+    # List search results with appropriate numbers in list.
     for n, v in enumerate(res, 1):
         print(n, v.show_info())
     while res:
@@ -153,7 +153,7 @@ def submenu_search():
                                   start_index=start_from)
                 for n, v in enumerate(res, 1):
                     print(n, v.show_info())
-                # List search results with appropriate numbers in list
+                # List search results with appropriate numbers in list.
                 for n, v in enumerate(res, 1):
                     print(n, v.show_info())
             # If user wants to go to the previous page of search results.
