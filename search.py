@@ -13,7 +13,7 @@ Rating counts: {rating_count}, Published date: {pub_date},
 See more: {info}
 """
 
-MAX_BOOKS_RESULT = 4
+MAX_RESULT = 4
 
 # bookshelf is global variable to be shared between components
 bookshelf = set()
@@ -98,9 +98,8 @@ def add_book_to_shelf(book_id, search_results):
     :param book_id: id of book.
     :param search_results:  search results.
     """
-    for book in search_results:
-        if book_id == book['id']:
-            bookshelf.add(Book(book))
+    book = search_results[book_id - 1]
+    bookshelf.add(Book(book))
 
 
 def see_books_pretty(books_list):
@@ -137,23 +136,38 @@ def submenu_search():
     """
     search_str = input('Enter the string to search: ')
     start_from = 0
-    res = search_book(search_str, max_results=MAX_BOOKS_RESULT,
+    res = search_book(search_str, max_results=MAX_RESULT,
                       start_index=start_from)
     see_books_pretty(res)
     while res:
-        choice = input('See next results (N): '
+        choice = input('See next page with results (N): '
+                       '\nSee the previous page with results (P)'
                        '\nSave book to shelve(enter book id): '
                        '\nGo back to main menu (Q): ')
         if choice:
             if choice == 'Q':
                 return
             elif choice == 'N':
-                start_from += MAX_BOOKS_RESULT
-                res = search_book(search_str, max_results=MAX_BOOKS_RESULT,
+                start_from += MAX_RESULT
+                res = search_book(search_str, max_results=MAX_RESULT,
                                   start_index=start_from)
                 see_books_pretty(res)
+            elif choice == 'P':
+                if start_from == 0:
+                    print('You has reached the first page of search results')
+                else:
+                    start_from -= MAX_RESULT
+                    res = search_book(search_str, max_results=MAX_RESULT,
+                                      start_index=start_from)
+                    see_books_pretty(res)
             else:
-                add_book_to_shelf(choice, res)
+                book_to_save = choice
+                try:
+                    book_to_save = int(book_to_save)
+                except ValueError:
+                    print('Enter the number of listed book:')
+                    continue
+                add_book_to_shelf(book_to_save, res)
         else:
             print('Please enter book id or Q to return to main menu')
     print('Search result is empty. Try other search.')
