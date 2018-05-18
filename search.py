@@ -111,9 +111,20 @@ def search_book(str_to_search, max_results=4, order_by='relevance',
     search_result = request.json().get('items')
     # Make Book() objects from search results
     for book in search_result:
-        founded_books.append(Book(book))
+        founded_books.append(make_books_from_raw_str(book))
     # The list of Book() objects will be returned
     return founded_books
+
+
+def make_books_from_raw_str(raw_str):
+    """
+    Makes Book() object from string with appropriate structure.
+
+    :param raw_str: string with book info.
+    :return: Book() object.
+    """
+    book = Book(raw_str)
+    return book
 
 
 def add_book_to_shelf(book_id, search_results):
