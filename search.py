@@ -135,6 +135,7 @@ def submenu_search():
     start_from = 0
     res = search_book(search_str, max_results=MAX_RESULT,
                       start_index=start_from)
+    # List search results with appropriate numbers in list
     for n, v in enumerate(res, 1):
         print(n, v.show_info())
     while res:
@@ -145,12 +146,17 @@ def submenu_search():
         if choice:
             if choice == 'Q':
                 return
+            # If user wants to go to the next page of search results.
             elif choice == 'N':
                 start_from += MAX_RESULT
                 res = search_book(search_str, max_results=MAX_RESULT,
                                   start_index=start_from)
                 for n, v in enumerate(res, 1):
                     print(n, v.show_info())
+                # List search results with appropriate numbers in list
+                for n, v in enumerate(res, 1):
+                    print(n, v.show_info())
+            # If user wants to go to the previous page of search results.
             elif choice == 'P':
                 if start_from == 0:
                     print('You has reached the first page of search results')
@@ -158,10 +164,15 @@ def submenu_search():
                     start_from -= MAX_RESULT
                     res = search_book(search_str, max_results=MAX_RESULT,
                                       start_index=start_from)
+
+                    # List search results with appropriate numbers in list
                     for n, v in enumerate(res, 1):
                         print(n, v.show_info())
             else:
                 book_to_save = choice
+                # If user entered a valid number (that corresponds with
+                # number of book in list) then add book to bookshelf. Else
+                # user will be asked to enter the valid number.
                 try:
                     book_to_save = int(book_to_save)
                 except ValueError:
